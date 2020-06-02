@@ -1,0 +1,4 @@
+host: yourhost.host
+nodename: yournodename      #kubectl get nodes -o wide
+                                         #even if your pv only RWO you can connect to them twice by setting same node for your filebrowser pod
+claimname: yourpvcname
