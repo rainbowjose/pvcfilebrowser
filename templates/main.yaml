@@ -13,22 +13,6 @@ spec:
     targetPort: 80
   selector:
     {{- include "selectorLabels" . | nindent 4 }}
-#---
-#apiVersion: v1
-#kind: PersistentVolumeClaim
-#metadata:
-#  labels:
-#    {{- include "labels" . | nindent 4 }}
-#  name: pvc-elk-ingest-elk-ingest-0
-#spec:
-#  accessModes:
-#  - ReadWriteOnce
-#  resources:
-#    requests:
-#      storage: 15Gi
-#  storageClassName: yc-network-hdd
-#  #volumeMode: Filesystem
-#  #volumeName: "pvc-5998014c-b588-4538-a308-1c98efe26e8a"
 ---
 apiVersion: apps/v1
 kind: Deployment
