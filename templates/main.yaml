@@ -17,7 +17,26 @@ spec:
     targetPort: 80
   selector:
     {{- include "selectorLabels" . | nindent 4 }}
+<<<<<<< HEAD
 >>>>>>> dd1569e0e2ba88eadb18c4c69d7c1dd1e6f338dc
+=======
+#---
+#apiVersion: v1
+#kind: PersistentVolumeClaim
+#metadata:
+#  labels:
+#    {{- include "labels" . | nindent 4 }}
+#  name: pvc-elk-ingest-elk-ingest-0
+#spec:
+#  accessModes:
+#  - ReadWriteOnce
+#  resources:
+#    requests:
+#      storage: 15Gi
+#  storageClassName: yc-network-hdd
+#  #volumeMode: Filesystem
+#  #volumeName: "pvc-5998014c-b588-4538-a308-1c98efe26e8a"
+>>>>>>> parent of dd1569e... Update main.yaml
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -137,6 +156,7 @@ spec:
           serviceName: {{ .Chart.Name }}-nginx
           servicePort: 80
 <<<<<<< HEAD
+<<<<<<< HEAD
       - path: /ws
         backend:
           serviceName: {{ .Chart.Name }}-ws
@@ -145,3 +165,6 @@ spec:
 =======
         path: /
 >>>>>>> dd1569e0e2ba88eadb18c4c69d7c1dd1e6f338dc
+=======
+        path: /
+>>>>>>> parent of dd1569e... Update main.yaml
