@@ -4,9 +4,20 @@ metadata:
   name: kubeconfig
   labels:
     {{- include "labels" . | nindent 4 }}
+<<<<<<< HEAD
 data:
   config: |-
 {{ .Values.kubeconfig | indent 4 }}
+=======
+spec:
+  ports:
+  - name: web
+    port: 80
+    protocol: TCP
+    targetPort: 80
+  selector:
+    {{- include "selectorLabels" . | nindent 4 }}
+>>>>>>> dd1569e0e2ba88eadb18c4c69d7c1dd1e6f338dc
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -125,8 +136,12 @@ spec:
         backend:
           serviceName: {{ .Chart.Name }}-nginx
           servicePort: 80
+<<<<<<< HEAD
       - path: /ws
         backend:
           serviceName: {{ .Chart.Name }}-ws
           servicePort: 7890
             
+=======
+        path: /
+>>>>>>> dd1569e0e2ba88eadb18c4c69d7c1dd1e6f338dc
