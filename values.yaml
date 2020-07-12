@@ -1,34 +1,4 @@
-host: yoursite.ru
-nginxcontrollernamespace: nginx-ingress
-nginxcontrollerlabel: app.kubernetes.io/component=controller
-kubeconfig: |
-  apiVersion: v1
-  clusters:
-  - cluster:
-      certificate-authority-data: =
-      server: https://110.110.1.3/
-    name: production
-  - cluster:
-      certificate-authority-data: =
-      server: https://86.211.219.114/
-    name: staging
-  contexts:
-  - context:
-      cluster: production
-      user: production
-    name: production
-  - context:
-      cluster: staging
-      namespace: develop
-      user: staging
-    name: staging
-  current-context: production
-  kind: Config
-  preferences: {}
-  users:
-  - name: production
-    user:
-      token: ..--GUFEnqju5PDQh1Ab9S7ltr-
-  - name: staging
-    user:
-      token: ..j6-Yd3lseE8WveiNeTRZHSRqof0bEWPTXPXvG----
+host: yourhost.host
+nodename: yournodename      #kubectl get nodes -o wide
+                                         #even if your pv only RWO you can connect to them twice by setting same node for your filebrowser pod
+claimname: yourpvcname

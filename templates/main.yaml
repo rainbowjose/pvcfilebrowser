@@ -1,14 +1,10 @@
+---
 apiVersion: v1
-kind: ConfigMap
+kind: Service
 metadata:
-  name: kubeconfig
+  name: {{ .Chart.Name }}
   labels:
     {{- include "labels" . | nindent 4 }}
-<<<<<<< HEAD
-data:
-  config: |-
-{{ .Values.kubeconfig | indent 4 }}
-=======
 spec:
   ports:
   - name: web
@@ -17,26 +13,6 @@ spec:
     targetPort: 80
   selector:
     {{- include "selectorLabels" . | nindent 4 }}
-<<<<<<< HEAD
->>>>>>> dd1569e0e2ba88eadb18c4c69d7c1dd1e6f338dc
-=======
-#---
-#apiVersion: v1
-#kind: PersistentVolumeClaim
-#metadata:
-#  labels:
-#    {{- include "labels" . | nindent 4 }}
-#  name: pvc-elk-ingest-elk-ingest-0
-#spec:
-#  accessModes:
-#  - ReadWriteOnce
-#  resources:
-#    requests:
-#      storage: 15Gi
-#  storageClassName: yc-network-hdd
-#  #volumeMode: Filesystem
-#  #volumeName: "pvc-5998014c-b588-4538-a308-1c98efe26e8a"
->>>>>>> parent of dd1569e... Update main.yaml
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -54,80 +30,35 @@ spec:
       labels:
         {{- include "labels" . | nindent 8 }}
     spec:
+      nodeSelector:
+        kubernetes.io/hostname: {{ .Values.nodename }}
       volumes:
-        - name: html
-          emptyDir: {}
-        - name: accesslog
-          emptyDir: {}
-        - name: kubeconfig
-          configMap:
-            name: kubeconfig
-            defaultMode: 0777
+        - name: storage
+          persistentVolumeClaim:
+            claimName: {{ .Values.claimname }}
       containers:
-      - name: nginx
-        image: nginx:latest
-        volumeMounts:
-        - name: html
-          mountPath: /usr/share/nginx/html
+      - name: filebrowser
+        image: filebrowser/filebrowser
         ports:
         - containerPort: 80
           name: web
           protocol: TCP
-      - name: kubectl
-        image: bitnami/kubectl:latest
         volumeMounts:
-        - name: kubeconfig
-          mountPath: .kube
-        - name: accesslog
-          mountPath: /accesslog
-        command: ["/bin/sh"]
-        args: ["-c", "kubectl logs -l{{ .Values.nginxcontrollerlabel }} --all-containers=true -f -n {{ .Values.nginxcontrollernamespace }} > /accesslog/access.log"]
-      - name: goaccess
-        image: allinurl/goaccess:latest
-        volumeMounts:
-        - name: html
-          mountPath: /html
-        - name: accesslog
-          mountPath: /accesslog
-        command: ["/bin/sh", "-c"]
-        args:
-          - goaccess /accesslog/access.log -o /html/index.html --log-format=COMBINED --real-time-html --ws-url={{ .Values.host }}:443/ws;
-        ports:
-        - containerPort: 7890
-          name: ws
-          protocol: TCP
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: {{ .Chart.Name }}-nginx
-  labels:
-    {{- include "labels" . | nindent 4 }}
-spec:
-  type: ClusterIP
-  ports:
-  - name: web
-    port: 80
-    protocol: TCP
-    targetPort: 80
-  selector:
-    {{- include "selectorLabels" . | nindent 4 }}
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: {{ .Chart.Name }}-ws
-  labels:
-    {{- include "labels" . | nindent 4 }}
-spec:
-  type: ClusterIP
-  ports:
-  - name: ws
-    port: 7890
-    protocol: TCP
-    targetPort: 7890
-  selector:
-    {{- include "selectorLabels" . | nindent 4 }}
+        - name: "storage"
+          mountPath: /srv
+        securityContext:
+          privileged: true
+      initContainers:
+      - name: increase-vm-max-map
+        image: busybox
+        command: ["sysctl", "-w", "vm.max_map_count=262144"]
+        securityContext:
+          privileged: true
+      - name: increase-fd-ulimit
+        image: busybox
+        command: ["sh", "-c", "ulimit -n 65536"]
+        securityContext:
+          privileged: true
 ---
 apiVersion: networking.k8s.io/v1beta1
 kind: Ingress
@@ -136,12 +67,21 @@ metadata:
   labels:
     {{- include "labels" . | nindent 4 }}
   annotations:
-    nginx.org/websocket-services: "{{ .Chart.Name }}-ws"
     cert-manager.io/cluster-issuer: letsencrypt-prod
     kubernetes.io/ingress.class: nginx
-    nginx.ingress.kubernetes.io/proxy-read-timeout: "1800"
-    nginx.ingress.kubernetes.io/proxy-send-timeout: "1800"
     nginx.ingress.kubernetes.io/affinity: cookie
+    nginx.ingress.kubernetes.io/session-cookie-expires: "172800"
+    nginx.ingress.kubernetes.io/session-cookie-max-age: "172800"
+    nginx.ingress.kubernetes.io/session-cookie-name: route
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      #client_max_body_size 100M;
+      default_type  application/octet-stream;
+      sendfile        on;
+      #tcp_nopush     on;
+      keepalive_timeout  1d;
+      fastcgi_read_timeout 1d;
+      #proxy_read_timeout 1d;
+      #gzip  on;
 spec:
   tls:
   - hosts:
@@ -151,20 +91,7 @@ spec:
   - host: {{ .Values.host }}
     http:
       paths:
-      - path: /
-        backend:
-          serviceName: {{ .Chart.Name }}-nginx
+      - backend:
+          serviceName: {{ .Chart.Name }}
           servicePort: 80
-<<<<<<< HEAD
-<<<<<<< HEAD
-      - path: /ws
-        backend:
-          serviceName: {{ .Chart.Name }}-ws
-          servicePort: 7890
-            
-=======
         path: /
->>>>>>> dd1569e0e2ba88eadb18c4c69d7c1dd1e6f338dc
-=======
-        path: /
->>>>>>> parent of dd1569e... Update main.yaml
